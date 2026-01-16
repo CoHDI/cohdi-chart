@@ -1,0 +1,13 @@
+common:
+  name: dynamic-device-scaler
+
+  image:
+    registry: docker.io
+    repository: bitnami/dynamic-device-scaler
+    tag: 0.1.0
+    pullPolicy: IfNotPresent
+
+  env:
+    SCAN_INTERVAL: "60"
+    DEVICE_NO_REMOVAL_DURATION: "600"
+    DEVICE_NO_ALLOCATION_DURATION: "60"

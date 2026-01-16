@@ -1,0 +1,74 @@
+suite: Test Deployment Rendering
+templates:
+  - templates/deployment.yaml
+
+tests:
+  - it: should set correct deployment name
+    set:
+      common:
+        name: cdi-dra
+        image:
+          registry: example.io
+          repository: example/cdi-dra
+          tag: 0.4.0
+          pullPolicy: Never
+
+      global.fti_cdi.hostAliases:
+        - ip: "111.111.111.111"
+          hostnames:
+            - "cdimgr.localdomain"
+      global.fti_cdi.env.CDI_ENDPOINT: "https://cdimgr.localdomain"
+      global.fti_cdi.env.TENANT_ID: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.name
+          value: cdi-dra
+
+  - it: should use correct image
+    set:
+      common:
+        name: cdi-dra
+        image:
+          registry: example.io
+          repository: example/cdi-dra
+          tag: 0.4.0
+          pullPolicy: Never
+      global.fti_cdi.hostAliases:
+        - ip: "111.111.111.111"
+          hostnames:
+            - "cdimgr.localdomain"
+      global.fti_cdi.env.CDI_ENDPOINT: "https://cdimgr.localdomain"
+      global.fti_cdi.env.TENANT_ID: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "example.io/example/cdi-dra:0.4.0"
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Never
+
+  - it: should include env vars from fti_cdi
+    set:
+      common.name: cdi-dra
+      global.fti_cdi.hostAliases:
+        - ip: "111.111.111.111"
+          hostnames:
+            - "cdimgr.localdomain"
+      global.fti_cdi.env.CDI_ENDPOINT: "https://cdimgr.localdomain"
+      global.fti_cdi.env.TENANT_ID: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+      fti_cdi.env.USE_CAPI_BMH: "true"
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: USE_CAPI_BMH
+            value: "true"

@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Composable Resource Operator Helm Values",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "common": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the operator deployment or release.",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "image": {
+          "type": "object",
+          "description": "Full image reference, e.g. registry/repo:tag",
+          "properties": {
+            "registry": {
+              "type": "string",
+              "description": "Container registry, e.g. docker.io"
+            },
+            "repository": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Image repository, e.g. bitnami/cdi-operator"
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Image tag, e.g. v19-c6e55ba"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "default": "IfNotPresent",
+              "description": "Kubernetes image pull policy."
+            }
+          },
+          "required": ["registry", "repository", "tag", "pullPolicy"]
+        },
+        "webhook": {
+          "type": "object",
+          "description": "Webhook server and client configuration.",
+          "additionalProperties": false,
+          "properties": {
+            "client": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "caBundle": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "PEM-encoded CA bundle or client certificate used by the webhook client."
+                }
+              },
+              "required": ["caBundle"]
+            },
+            "server": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "crt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "PEM-encoded TLS certificate for the webhook server."
+                },
+                "key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "PEM-encoded private key for the webhook server."
+                }
+              },
+              "required": ["crt", "key"]
+            }
+          },
+          "required": ["client", "server"]
+        },
+        "managerEnv": {
+          "type": "object",
+          "description": "Environment variables injected into the manager container.",
+          "additionalProperties": { "type": "string" },
+          "properties": {
+            "DEVICE_RESOURCE_TYPE": {
+              "type": "string",
+              "description": "Specifies the DRA device resource type."
+            },
+            "CDI_PROVIDER_TYPE": {
+              "type": "string",
+              "description": "Defines the CDI provider type."
+            }
+          }
+        }
+      },
+      "required": ["name", "image", "webhook", "managerEnv"]
+    },
+    "fti_cdi": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "managerEnv": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "properties": {
+            "FTI_CDI_API_TYPE": {
+              "type": "string",
+              "description": "Defines the API type for the FTI CDI."
+            }
+          }
+        }
+      }
+    }
+  }
+}

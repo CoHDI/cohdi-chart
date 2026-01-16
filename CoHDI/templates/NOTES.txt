@@ -1,0 +1,8 @@
+Quickstart:
+  helm dependency build .
+  helm lint .
+  helm install cohdi . -n cohdi --create-namespace
+
+Result should include:
+  - composable-dra: cdi-dra & dds-controller-manager
+  - composable-resource-operator-system: composable-resource-operator-controller-manager

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: composable-dra-dds
+  namespace: composable-dra
+data:
+  label-prefix: "cohdi.io"
+  fabric-id-range: {{ quote .Values.global.common.configData.fabricIdRange }}
+  device-info: |
+{{- nindent 4 .Values.global.common.configData.deviceInfo }}

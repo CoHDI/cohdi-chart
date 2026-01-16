@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: {{ .Values.common.name }}
+  namespace: composable-dra
+  labels:
+    app: {{ .Values.common.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.common.name }}
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: {{ .Values.common.name }}
+    spec:
+      serviceAccountName: {{ .Values.common.name }}
+      hostAliases:
+      {{- range .Values.global.fti_cdi.hostAliases }}
+        - ip: {{ .ip | quote }}
+          hostnames:
+          {{- range .hostnames }}
+            - {{ . | quote }}
+          {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.common.name }}
+          image: {{ printf "%s/%s:%s" .Values.common.image.registry .Values.common.image.repository .Values.common.image.tag | quote }}
+          imagePullPolicy: {{ .Values.common.image.pullPolicy }}
+          env:
+            - name: CDI_ENDPOINT
+              value: {{ .Values.global.fti_cdi.env.CDI_ENDPOINT }}
+            - name: TENANT_ID
+              value: {{ .Values.global.fti_cdi.env.TENANT_ID }}
+          {{- range $k, $v := .Values.fti_cdi.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}
+          {{- range $k, $v := .Values.common.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.common.name }}
+  namespace: composable-dra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.common.name }}
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+- apiGroups: ["resource.k8s.io"]
+  resources: ["resourceslices"]
+  verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ printf "%s-binding" .Values.common.name }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.common.name }}
+  namespace: composable-dra
+roleRef:
+  kind: ClusterRole
+  name: {{ .Values.common.name }}
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.common.name }}
+  namespace: composable-dra
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ printf "%s-binding" .Values.common.name }}
+  namespace: composable-dra
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.common.name }}
+  namespace: composable-dra
+roleRef:
+  kind: Role
+  name: {{ .Values.common.name }}
+  apiGroup: rbac.authorization.k8s.io

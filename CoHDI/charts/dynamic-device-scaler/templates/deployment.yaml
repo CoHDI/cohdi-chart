@@ -1,0 +1,104 @@
+{{- /*
+Simplified deployment template with hardcoded namespace, service account, and RBAC values.
+*/ -}}
+
+{{- $name := required "Values.common.name is required" .Values.common.name -}}
+{{- $image := required "Values.common.image is required" .Values.common.image -}}
+{{- $imagePullPolicy := default "IfNotPresent" .Values.common.image.pullPolicy -}}
+
+{{/* Hardcoded values */}}
+{{- $ns := "composable-dra" -}}
+{{- $deployName := "dds-controller-manager" -}}
+{{- $saName := "dds-controller-manager" -}}
+{{- $replicas := 1 -}}
+{{- $rbacEnabled := true -}}
+{{- $clusterRoleName := "dynamic-device-scaler-role" -}}
+{{- $clusterRoleBindingName := "dds-manager-rolebinding" -}}
+{{- $tgps := 10 -}}
+
+{{/* Common label block */}}
+{{- $labels := dict "app.kubernetes.io/name" "dynamic-device-scaler" -}}
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $saName }}
+  namespace: {{ $ns }}
+  labels:
+    app.kubernetes.io/name: dynamic-device-scaler
+---
+{{- if $rbacEnabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $clusterRoleName }}
+  labels:
+    app.kubernetes.io/name: dynamic-device-scaler
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "patch", "update"]
+- apiGroups: ["cro.hpsys.ibm.ie.com"]
+  resources: ["composabilityrequests", "composableresources"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["cro.hpsys.ibm.ie.com"]
+  resources: ["composabilityrequests/status", "composableresources/status"]
+  verbs: ["get", "patch", "update"]
+- apiGroups: ["resource.k8s.io"]
+  resources: ["resourceclaims", "resourceslices"]
+  verbs: ["get", "list", "patch", "update", "watch"]
+- apiGroups: ["resource.k8s.io"]
+  resources: ["resourceclaims/status", "resourceslices/status"]
+  verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $clusterRoleBindingName }}
+  labels:
+    app.kubernetes.io/name: dynamic-device-scaler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $clusterRoleName }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $saName }}
+  namespace: {{ $ns }}
+---
+{{- end }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deployName }}
+  namespace: {{ $ns }}
+  labels:
+    app.kubernetes.io/name: dynamic-device-scaler
+spec:
+  replicas: {{ $replicas }}
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+        app.kubernetes.io/name: dynamic-device-scaler
+    spec:
+      serviceAccountName: {{ $saName }}
+      terminationGracePeriodSeconds: {{ $tgps }}
+      containers:
+        - name: {{ $name }}
+          image: {{ printf "%s/%s:%s" $image.registry $image.repository $image.tag | quote }}
+          imagePullPolicy: {{ $imagePullPolicy }}
+          command:
+            - /dynamic-device-scaler
+          env:
+          {{- range $k, $v := .Values.common.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}

@@ -1,0 +1,306 @@
+suite: cdi-operator namespace check
+templates:
+  - templates/namespace.yaml
+
+tests:
+  - it: renders Namespace composable-resource-operator-system
+    set:
+      common:
+        name: composable-resource-operator
+    asserts:
+      - isKind:
+          of: Namespace
+      - equal:
+          path: metadata.name
+          value: composable-resource-operator-system
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: composable-resource-operator
+
+---
+suite: cdi-operator secrets checks
+templates:
+  - templates/secret.yaml
+
+tests:
+  - it: renders Secret credentials in composable-resource-operator-system
+    set:
+      common:
+        name: composable-resource-operator
+        webhook:
+          server:
+            crt: "dummy-cert"
+            key: "dummy-key"
+      global:
+        fti_cdi:
+          credentials:
+            username: "user1"
+            password: "pass1"
+            client_id: "client1"
+            client_secret: "secret1"
+            realm: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+          externalCA:
+            certificate: "dummy-ca"
+    asserts:
+      - isKind:
+          of: Secret
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: credentials
+        documentIndex: 0
+      - equal:
+          path: metadata.namespace
+          value: composable-resource-operator-system
+        documentIndex: 0
+      - matchRegex:
+          path: stringData.username
+          pattern: ".+"
+        documentIndex: 0
+      - matchRegex:
+          path: stringData.password
+          pattern: ".+"
+        documentIndex: 0
+      - matchRegex:
+          path: stringData.client_id
+          pattern: ".+"
+        documentIndex: 0
+      - matchRegex:
+          path: stringData.client_secret
+          pattern: ".+"
+        documentIndex: 0
+      - matchRegex:
+          path: stringData.realm
+          pattern: ".+"
+        documentIndex: 0
+
+  - it: renders Secret webhook-server-cert with tls data
+    set:
+      common:
+        name: composable-resource-operator
+        webhook:
+          server:
+            crt: "dummy-cert"
+            key: "dummy-key"
+      global:
+        fti_cdi:
+          credentials:
+            username: "user1"
+            password: "pass1"
+            client_id: "client1"
+            client_secret: "secret1"
+            realm: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+          externalCA:
+            certificate: "dummy-ca"
+    asserts:
+      - isKind:
+          of: Secret
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: webhook-server-cert
+        documentIndex: 1
+      - equal:
+          path: metadata.namespace
+          value: composable-resource-operator-system
+        documentIndex: 1
+      - equal:
+          path: type
+          value: kubernetes.io/tls
+        documentIndex: 1
+      - matchRegex:
+          path: stringData["tls.crt"]
+          pattern: ".+"
+        documentIndex: 1
+      - matchRegex:
+          path: stringData["tls.key"]
+          pattern: ".+"
+        documentIndex: 1
+
+  - it: renders Secret external-server-ca-cert with ca.crt
+    set:
+      common:
+        name: composable-resource-operator
+        webhook:
+          server:
+            crt: "dummy-cert"
+            key: "dummy-key"
+      global:
+        fti_cdi:
+          credentials:
+            username: "user1"
+            password: "pass1"
+            client_id: "client1"
+            client_secret: "secret1"
+            realm: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+          externalCA:
+            certificate: "dummy-ca"
+    asserts:
+      - isKind:
+          of: Secret
+        documentIndex: 2
+      - equal:
+          path: metadata.name
+          value: external-server-ca-cert
+        documentIndex: 2
+      - equal:
+          path: metadata.namespace
+          value: composable-resource-operator-system
+        documentIndex: 2
+      - equal:
+          path: type
+          value: Opaque
+        documentIndex: 2
+      - matchRegex:
+          path: stringData["ca.crt"]
+          pattern: ".+"
+        documentIndex: 2
+
+---
+suite: cdi-operator deployment, webhook and daemonset checks
+templates:
+  - templates/generated-manifests-v5.yaml
+
+tests:
+  - it: renders Deployment composable-resource-operator-controller-manager with critical fields
+    set:
+      common:
+        name: composable-resource-operator
+        image:
+          registry: example.io
+          repository: example/cdi-operator
+          tag: 0.4.0
+          pullPolicy: Never
+        managerEnv:
+          CDI_PROVIDER_TYPE: "FTI_CDI"
+          DEVICE_RESOURCE_TYPE: "DRA"
+        webhook:
+          client:
+            caBundle: "dummy-client"
+      fti_cdi:
+        managerEnv:
+          FTI_CDI_API_TYPE: "FM"
+      global:
+        fti_cdi:
+          env:
+            TENANT_ID: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+          hostAliases:
+            - ip: "111.111.111.111"
+              hostnames:
+                - "cdimgr.localdomain"
+          credentials:
+            username: "user1"
+            password: "pass1"
+            client_id: "client1"
+            client_secret: "secret1"
+            realm: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+          externalCA:
+            certificate: "dummy-ca"
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: composable-resource-operator-controller-manager
+      - equal:
+          path: metadata.namespace
+          value: composable-resource-operator-system
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: composable-resource-operator-controller-manager
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "example.io/example/cdi-operator:0.4.0"
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Never
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: "/etc/ssl/certs/custom-ca/ca.crt"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FTI_CDI_TENANT_ID
+            value: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FTI_CDI_ENDPOINT
+            value: "111.111.111.111:443"
+
+  - it: renders ValidatingWebhookConfiguration with CA bundle and service
+    set:
+      common:
+        name: composable-resource-operator
+        webhook:
+          client:
+            caBundle: "dummy-client"
+      global:
+        fti_cdi:
+          env:
+            TENANT_ID: "060ea5a5-46e4-42b4-8d95-70578718d8d0"
+          hostAliases:
+            - ip: "111.111.111.111"
+              hostnames:
+                - "cdimgr.localdomain"
+    documentSelector:
+      path: kind
+      value: ValidatingWebhookConfiguration
+    asserts:
+      - isKind:
+          of: ValidatingWebhookConfiguration
+      - equal:
+          path: metadata.name
+          value: composable-resource-operator-validating-webhook-configuration
+      - equal:
+          path: webhooks[0].clientConfig.caBundle
+          value: "dummy-client"
+          decodeBase64: true
+      - equal:
+          path: webhooks[0].clientConfig.service.name
+          value: composable-resource-operator-webhook-service
+      - equal:
+          path: webhooks[0].clientConfig.service.namespace
+          value: composable-resource-operator-system
+  - it: renders node agent DeamonSet
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - isKind:
+          of: DaemonSet
+      - equal:
+          path: metadata.name
+          value: cro-node-agent
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: cro-node-agent
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /host-root
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: host-root
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+      - equal:
+          path: spec.template.spec.volumes[0].hostPath.path
+          value: /
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: host-root
+      - equal:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key
+          value: node-role.kubernetes.io/control-plane
+      - equal:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator
+          value: DoesNotExist

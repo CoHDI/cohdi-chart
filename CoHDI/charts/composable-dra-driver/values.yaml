@@ -1,0 +1,16 @@
+common:
+  name: composable-dra-driver
+
+  image:
+    registry: docker.io
+    repository: bitnami/composable-dra-driver
+    tag: 0.1.0
+    pullPolicy: IfNotPresent
+
+  env:
+    SCAN_INTERVAL: "5s"
+
+fti_cdi:
+  env:
+    USE_CAPI_BMH: "false"
+    USE_CM: "false"
