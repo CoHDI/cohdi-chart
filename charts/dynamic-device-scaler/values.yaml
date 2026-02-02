@@ -1,0 +1,13 @@
+common:
+  name: dynamic-device-scaler
+
+  image:
+    registry: ghcr.io
+    repository: cohdi/dynamic-device-scaler
+    tag: v0.1.1
+    pullPolicy: IfNotPresent
+
+  env:
+    SCAN_INTERVAL: "60"
+    DEVICE_NO_REMOVAL_DURATION: "600"
+    DEVICE_NO_ALLOCATION_DURATION: "60"

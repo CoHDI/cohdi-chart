@@ -1,0 +1,58 @@
+global:
+  common:
+    configData:
+      deviceInfo: |
+        - index: 1
+          cdi-model-name: "a100"
+          dra-attributes:
+            productName: "NVIDIA A100 80GB PCIe"
+            type: "gpu"
+            uuid: ""
+          driver-name: "gpu.nvidia.com"
+          k8s-device-name: "nvidia-a100-80"
+          cannot-coexist-with: [2,3]
+        - index: 2
+          cdi-model-name: "L40S"
+          dra-attributes:
+            productName: "NVIDIA L40S"
+            type: "gpu"
+            uuid: ""
+          driver-name: "gpu.nvidia.com"
+          k8s-device-name: "nvidia-l40s"
+          cannot-coexist-with: [1,3]
+        - index: 3
+          cdi-model-name: "a30"
+          dra-attributes:
+            productName: "NVIDIA A30"
+            type: "gpu"
+            uuid: ""
+          driver-name: "gpu.nvidia.com"
+          k8s-device-name: "nvidia-a30"
+          cannot-coexist-with: [1,2]
+      fabricIdRange: "[0]"
+
+  fti_cdi:
+    credentials:
+      username: "username"
+      password: "password"
+      realm: "00000000-0000-0000-0000-000000000000"
+      client_id: "cdi"
+      client_secret: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+    env:
+      CDI_ENDPOINT: "https://cdimgr.localdomain"
+      CLUSTER_ID: ""
+      TENANT_ID: "00000000-0000-0000-0000-000000000000"
+
+    externalCA:
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        -----END CERTIFICATE-----
+
+    hostAliases:
+      - ip: 198.51.100.2
+        hostnames:
+          - cdimgr.localdomain

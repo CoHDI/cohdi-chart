@@ -1,0 +1,16 @@
+common:
+  name: composable-dra-driver
+
+  image:
+    registry: ghcr.io
+    repository: cohdi/composable-dra-driver
+    tag: v0.1.1
+    pullPolicy: IfNotPresent
+
+  env:
+    SCAN_INTERVAL: "5s"
+
+fti_cdi:
+  env:
+    USE_CAPI_BMH: "false"
+    USE_CM: "false"

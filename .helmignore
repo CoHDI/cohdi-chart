@@ -1,0 +1,5 @@
+*.tgz
+.git/
+.vscode/
+.idea/
+.DS_Store
