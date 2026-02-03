@@ -1,0 +1,40 @@
+common:
+  name: composable-resource-operator
+
+  image:
+    registry: ghcr.io
+    repository: cohdi/composable-resource-operator
+    tag: v0.1.0-4-dev
+    pullPolicy: IfNotPresent
+
+  webhook:
+    client:
+      caBundle: |
+        -----BEGIN CERTIFICATE-----
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        -----END CERTIFICATE-----
+
+    server:
+      crt: |
+        -----BEGIN CERTIFICATE-----
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        -----END CERTIFICATE-----
+
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        -----END PRIVATE KEY-----
+
+  managerEnv:
+    DEVICE_RESOURCE_TYPE: "DRA"
+    CDI_PROVIDER_TYPE: "FTI_CDI"
+
+fti_cdi:
+  managerEnv:
+    FTI_CDI_API_TYPE: "FM"

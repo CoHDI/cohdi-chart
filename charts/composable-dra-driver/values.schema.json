@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cdi-dra Helm values",
+  "type": "object",
+  "additionalProperties": true,
+
+  "properties": {
+    "common": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["name", "image"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the deployment or release.",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "image": {
+          "type": "object",
+          "description": "Container image configuration.",
+          "properties": {
+            "registry": {
+              "type": "string",
+              "description": "Container registry, e.g. docker.io"
+            },
+            "repository": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Image repository, e.g. bitnami/cdi-dra"
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Image tag, e.g. v19-c6e55ba"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "default": "IfNotPresent",
+              "description": "Kubernetes image pull policy."
+            }
+          },
+          "required": ["registry", "repository", "tag", "pullPolicy"]
+        },
+        "imagePullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "default": "IfNotPresent",
+          "description": "Kubernetes image pull policy."
+        },
+        "env": {
+          "type": "object",
+          "description": "Environment variables for the common container.",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "properties": {
+            "SCAN_INTERVAL": {
+              "type": "string",
+              "pattern": "^[0-9]+s$",
+              "default": "5s",
+              "description": "Interval for scanning operations (e.g. '5s')."
+            }
+          }
+        }
+      }
+    },
+
+    "fti_cdi": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "env": {
+          "type": "object",
+          "description": "Environment variables for the fti_cdi component.",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "properties": {
+            "USE_CAPI_BMH": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "default": "false",
+              "description": "Enable or disable CAPI BareMetalHost integration."
+            },
+            "USE_CM": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "default": "false",
+              "description": "Enable or disable Cluster Manager integration."
+            }
+          }
+        }
+      }
+    }
+  }
+}

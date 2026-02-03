@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "properties": {
+        "common": {
+          "type": "object",
+          "properties": {
+            "configData": {
+              "type": "object",
+              "description": "Device and configuration data for CDI resources.",
+              "properties": {
+                "fabricIdRange": {
+                  "type": "string",
+                  "description": "Range of fabric IDs, e.g. '[0]'."
+                },
+                "deviceInfo": {
+                  "type": "string",
+                  "description": "YAML-formatted list of device definitions with attributes."
+                }
+              },
+              "required": ["fabricIdRange", "deviceInfo"]
+            }
+          },
+          "required": ["configData"]
+        },
+
+        "fti_cdi": {
+          "type": "object",
+          "properties": {
+            "credentials": {
+              "type": "object",
+              "properties": {
+                "username": { "type": "string" },
+                "password": { "type": "string" },
+                "realm": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F-]{36}$"
+                },
+                "client_id": { "type": "string" },
+                "client_secret": { "type": "string" }
+              },
+              "required": [
+                "username",
+                "password",
+                "realm",
+                "client_id",
+                "client_secret"
+              ]
+            },
+
+            "env": {
+              "type": "object",
+              "properties": {
+                "CDI_ENDPOINT": {
+                  "type": "string",
+                  "description": "Base URL of the CDI Manager endpoint (e.g. https://cdimgr.localdomain)."
+                },
+                "CLUSTER_ID": {
+                  "type": "string",
+                  "description": "Cluster identifier. May be blank."
+                },
+                "TENANT_ID": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F-]{36}$",
+                  "description": "UUID of the tenant."
+                }
+              },
+              "required": ["CDI_ENDPOINT", "TENANT_ID"]
+            },
+
+            "externalCA": {
+              "type": "object",
+              "properties": {
+                "certificate": {
+                  "type": "string",
+                  "description": "PEM-encoded CA certificate."
+                }
+              },
+              "required": ["certificate"]
+            },
+
+            "hostAliases": {
+              "type": "array",
+              "description": "Additional host aliases entries for pods.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}$"
+                  },
+                  "hostnames": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 1
+                  }
+                },
+                "required": ["ip", "hostnames"]
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "credentials",
+            "env",
+            "externalCA",
+            "hostAliases"
+          ]
+        }
+      },
+      "required": ["common", "fti_cdi"]
+    }
+  },
+  "required": ["global"]
+}
