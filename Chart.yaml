@@ -2,15 +2,15 @@ apiVersion: v2
 name: cohdi
 description: CoHDI chart for CDI DRA, CRO operator, and DDS.
 type: application
-version: 0.2.1
-appVersion: "0.2.1"
+version: 0.2.2
+appVersion: "0.2.2"
 dependencies:
   - name: composable-dra-driver
-    version: v0.2.1
+    version: v0.2.2
     repository: file://charts/composable-dra-driver
   - name: composable-resource-operator
-    version: v0.2.1
+    version: v0.2.2
     repository: file://charts/composable-resource-operator
   - name: dynamic-device-scaler
-    version: v0.2.1
+    version: v0.2.2
     repository: file://charts/dynamic-device-scaler
